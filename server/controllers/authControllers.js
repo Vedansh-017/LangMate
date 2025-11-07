@@ -1,0 +1,73 @@
+import UserModel from "../models/userModel.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+// Create JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+// ✅ Signup Controller
+export const registerUser = async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
+
+    let existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(405).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await UserModel.create({
+      fullName,
+      email,
+      password: hashedPassword,
+    });
+
+    res.json({
+      _id: newUser._id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      token: generateToken(newUser._id),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ Login Controller
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    res.json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ Google Login Success
+export const googleLoginSuccess = (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authorized" });
+  }
+
+  const token = generateToken(req.user._id);
+  res.redirect(`http://localhost:5173?token=${token}`);
+};

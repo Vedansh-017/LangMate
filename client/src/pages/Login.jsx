@@ -21,24 +21,36 @@ const LoginPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!email || !password) {
-      toast.error("Please fill in all fields");
-      return;
-    }
+  if (!email || !password) {
+    toast.error("Please fill in all fields");
+    return;
+  }
 
-    const res = await loginUser({ email, password });
+  const res = await loginUser({ email, password });
 
-    if (res.success === false) {
-      toast.error(res.message || "Invalid email or password");
+  if (!res.success) {
+    toast.error(res.message || "Invalid email or password");
+  } else {
+    const user = res.user;
+    toast.success("Welcome back! 👋");
+
+    // ✅ Check if profile is complete
+    if (
+      !user.bio ||
+      !user.nativeLanguage ||
+      !user.learningLanguage ||
+      !user.location
+    ) {
+      navigate("/update-profile"); // onboarding
     } else {
-      toast.success("Welcome back! 👋");
-      navigate("/profile"); // Redirect after login
+      navigate("/"); // already onboarded
     }
-  };
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0e0e0e] text-white p-4">
@@ -84,7 +96,7 @@ const LoginPage = () => {
               type="submit"
               className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-2 rounded-lg transition mt-4"
             >
-              Sign In
+              Log in 
             </button>
           </form>
 

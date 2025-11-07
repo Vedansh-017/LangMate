@@ -50,12 +50,13 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
+    const userData = await UserModel.findById(user._id).select("-password")
     res.json({
       _id: user._id,
       fullName: user.fullName,
       email: user.email,
       token: generateToken(user._id),
+      user: userData,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

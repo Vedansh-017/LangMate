@@ -2,17 +2,17 @@ import { Router } from "express";
 import passport from "passport";
 import { registerUser, loginUser, googleLoginSuccess } from "../controllers/authControllers.js";
 
-const userRouter = Router();
+const authRoutes = Router();
 
 // ✨ Normal Signup & Login
-userRouter.post("/register", registerUser);
-userRouter.post("/login", loginUser);
+authRoutes.post("/register", registerUser);
+authRoutes.post("/login", loginUser);
 
 // ✨ Google OAuth Login
-userRouter.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+authRoutes.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 // Callback route after login
-userRouter.get("/google/callback",
+authRoutes.get("/google/callback",
   passport.authenticate("google", {
     successRedirect: "http://localhost:5173/profile",   // frontend success page
      failureRedirect: "http://localhost:5173/login?error=invalid_domain"       // frontend login page
@@ -21,4 +21,4 @@ userRouter.get("/google/callback",
 
 
 
-export default userRouter;
+export default authRoutes;

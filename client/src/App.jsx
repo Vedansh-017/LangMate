@@ -9,6 +9,7 @@ import ChatUI from './pages/Chat';
 import SignupPage from './pages/SignUp';
 import LoginPage from './pages/Login';
 import ProfileSetup from './pages/ProfilePage';
+import UpdateProfile from './pages/UpdateProfile';
 function App() {
   return (
     <div className="bg-primary min-h-screen text-white">
@@ -21,6 +22,7 @@ function App() {
         <Route path='/sign' element={<SignupPage/>}/>
         <Route path='/login' element={<LoginPage/>}/>
         <Route path='/profile' element={<ProfileSetup/>}/>
+        <Route path='/update-profile' element={<UpdateProfile/>}/>
       </Routes>
     </div>
   )

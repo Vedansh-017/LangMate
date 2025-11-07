@@ -8,6 +8,7 @@ import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js';
 import session from "express-session";
 import "./config/passport.js";
+import userRouter from "./routes/userRoutes.js";
 const PORT= process.env.PORT || 4000
 
 const app = express()
@@ -48,6 +49,7 @@ app.use(passport.session());
 
 app.get('/',(req,res)=>  res.send("DDSTHA"));
 app.use('/api/auth',authRouter);
+app.use("/api/user", userRouter);
 
 
 

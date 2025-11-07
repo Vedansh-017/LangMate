@@ -1,101 +1,106 @@
-import React, { useState } from "react";
-import { Globe, MapPin } from "lucide-react";
+import React, { useContext, useEffect } from "react";
+import { AppContext } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
+import { User, Globe, MapPin, Languages } from "lucide-react";
 
-const ProfileSetup = () => {
-  const [avatar, setAvatar] = useState("https://i.pravatar.cc/150?img=12"); // default avatar
+const ProfilePage = () => {
+  const { userData, getUserData, isLoggedIn } = useContext(AppContext);
+  const navigate = useNavigate();
 
-  // ✅ Generate Random Avatar
-  const generateAvatar = () => {
-    const randomNum = Math.floor(Math.random() * 70) + 1;
-    setAvatar(`https://i.pravatar.cc/150?img=${randomNum}`);
-  };
+  // Fetch user data if not already available
+  useEffect(() => {
+    if (!userData) getUserData();
+  }, [userData]);
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center text-white bg-[#0e0e0e]">
+        <p className="text-lg text-gray-300 mb-3">You’re not logged in.</p>
+        <button
+          onClick={() => navigate("/login")}
+          className="px-6 py-2 bg-green-500 hover:bg-green-600 text-black rounded-full transition font-semibold"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-gray-400 bg-[#0e0e0e]">
+        Loading your profile...
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-primary text-white px-4 md:mt-16">
-      <div className="w-full max-w-2xl bg-[#111] p-10 rounded-xl shadow-lg">
+    <div className="min-h-screen flex justify-center items-center bg-[#0e0e0e] text-white p-6 mt-16">
+      <div className="bg-[#111] w-full max-w-2xl rounded-2xl shadow-lg border border-gray-800 p-8">
 
-        {/* ✅ Title */}
-        <h2 className="text-center text-3xl font-bold mb-6">Complete Your Profile</h2>
-
-        {/* ✅ Avatar Section */}
-        <div className="flex flex-col items-center mb-6">
+        {/* ✅ Profile Header */}
+        <div className="flex flex-col items-center">
           <img
-            src={avatar}
-            alt="Avatar"
-            className="w-28 h-28 rounded-full border-[3px] border-green-400"
+            src={userData.profilePic || "https://i.pravatar.cc/150?img=1"}
+            alt="Profile"
+            className="w-28 h-28 rounded-full border-[3px] border-green-400 mb-3"
           />
-          <button
-            onClick={generateAvatar}
-            className="mt-4 bg-green-500 hover:bg-green-600 text-black font-medium px-4 py-2 rounded-full flex items-center gap-2 transition"
-          >
-            🎲 Generate Random Avatar
-          </button>
+          <h2 className="text-2xl font-bold text-green-400">{userData.fullName}</h2>
+          <p className="text-sm text-gray-400">{userData.email}</p>
         </div>
 
-        {/* ✅ Full Name */}
-        <div className="mb-4">
-          <label className="text-sm">Full Name</label>
-          <input
-            type="text"
-            defaultValue="Beth Doe"
-            className="w-full p-3 mt-1 bg-transparent border border-gray-700 rounded-lg focus:border-green-400 outline-none"
-          />
+        {/* ✅ Bio Section */}
+        <div className="mt-6 text-center">
+          <p className="text-gray-300 italic">
+            {userData.bio || "No bio added yet..."}
+          </p>
         </div>
 
-        {/* ✅ Bio */}
-        <div className="mb-4">
-          <label className="text-sm">Bio</label>
-          <textarea
-            rows="3"
-            placeholder="Tell others about yourself and your language learning goals"
-            className="w-full p-3 mt-1 bg-transparent border border-gray-700 rounded-lg focus:border-green-400 outline-none"
-          ></textarea>
-        </div>
-
-        {/* ✅ Native & Learning Language */}
-        <div className="flex gap-4 mb-4">
-          <div className="w-1/2">
-            <label className="text-sm">Native Language</label>
-            <select className="w-full p-3 mt-1 bg-transparent border border-gray-700 rounded-lg focus:border-green-400 outline-none">
-              <option className="bg-black">Select your native language</option>
-              <option className="bg-black">English</option>
-              <option className="bg-black">Hindi</option>
-              <option className="bg-black">Spanish</option>
-            </select>
+        {/* ✅ Language Section */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col items-center border border-gray-800 rounded-lg p-4 bg-[#141414]">
+            <Languages className="text-green-400 mb-2" size={20} />
+            <h4 className="text-sm text-gray-400">Native Language</h4>
+            <p className="font-semibold text-lg">
+              {userData.nativeLanguage || "Not set"}
+            </p>
           </div>
-          <div className="w-1/2">
-            <label className="text-sm">Learning Language</label>
-            <select className="w-full p-3 mt-1 bg-transparent border border-gray-700 rounded-lg focus:border-green-400 outline-none">
-              <option className="bg-black">Select language you're learning</option>
-              <option className="bg-black">French</option>
-              <option className="bg-black">German</option>
-              <option className="bg-black">Japanese</option>
-            </select>
+
+          <div className="flex flex-col items-center border border-gray-800 rounded-lg p-4 bg-[#141414]">
+            <Globe className="text-green-400 mb-2" size={20} />
+            <h4 className="text-sm text-gray-400">Learning Language</h4>
+            <p className="font-semibold text-lg">
+              {userData.learningLanguage || "Not set"}
+            </p>
           </div>
         </div>
 
         {/* ✅ Location */}
-        <div className="mb-6">
-          <label className="text-sm">Location</label>
-          <div className="flex items-center border border-gray-700 rounded-lg mt-1">
-            <span className="px-3">
-              <MapPin size={18} className="text-gray-400" />
-            </span>
-            <input
-              type="text"
-              placeholder="City, Country"
-              className="w-full p-3 bg-transparent outline-none"
-            />
-          </div>
+        <div className="flex flex-col items-center mt-8">
+          <MapPin className="text-green-400 mb-2" size={20} />
+          <p className="text-gray-300">{userData.location || "Location not added"}</p>
         </div>
 
-        {/* ✅ Submit Button */}
-        <button className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-3 rounded-full flex justify-center items-center gap-2 transition">
-          <Globe size={18} /> Complete Onboarding
-        </button>
+        {/* ✅ Action Buttons */}
+        <div className="flex justify-center gap-4 mt-10">
+          <button
+            onClick={() => navigate("/update-profile")}
+            className="bg-green-500 hover:bg-green-600 text-black font-semibold px-6 py-2 rounded-full transition"
+          >
+            Edit Profile
+          </button>
+
+          <button
+            onClick={() => navigate("/")}
+            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-6 py-2 rounded-full transition"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+
       </div>
     </div>
   );
 };
 
-export default ProfileSetup;
+export default ProfilePage;

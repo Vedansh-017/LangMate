@@ -10,32 +10,39 @@ const Navbar = () => {
       {/* Left: Logo */}
       <h1 className="text-2xl font-extrabold text-green-400 tracking-wide"  onClick={() => navigate('/')}>
       LangMate
-     
       </h1>
 
       {/* Right: Icons */}
       <div className="flex items-center gap-6">
         {/* Notification Bell */}
-        <button className="relative hover:scale-110 transition">
+        <button className="relative hover:scale-110 transition"
+          onClick={() => navigate("/notifications")}>
           <Bell size={20} />
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full"></span>
         </button>
 
         {/* Theme Palette */}
-        <button className="relative hover:scale-110 transition">
+        {/* <button className="relative hover:scale-110 transition">
           <Palette size={20} />
-        </button>
+        </button> */}
 
         {/* Profile Picture */}
         <img
           src={profilePic}
           alt="Profile"
+          onClick={() => navigate("/profile")}
           className="w-8 h-8 rounded-full object-cover border border-gray-700 hover:scale-105 transition"
         />
 
         {/* Logout Icon */}
-        <button className="relative hover:scale-110 transition">
+        <button className="relative hover:scale-110 transition"
+         onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/login");
+              window.location.reload();
+            }}>
           <LogOut size={20} />
+          
         </button>
       </div>
     </header>

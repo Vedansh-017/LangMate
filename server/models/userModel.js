@@ -63,16 +63,10 @@ googleId: {
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "User"
       },
     ],
 
-    friendRequests: [
-      {
-        from: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        status: { type: String, enum: ["pending", "accepted", "rejected"], default: "pending" },
-      },
-    ],
   },
   { timestamps: true } // ✅ createdAt & updatedAt automatically
 );

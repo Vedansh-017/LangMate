@@ -60,7 +60,7 @@ const loginUser = async ({ email, password }) => {
     if (data.token) {
       localStorage.setItem("token", data.token);
       setIsLoggedIn(true);
-      setUserData(data);
+      setUserData(data.user);
       toast.success("Login successful!");
       return { success: true ,user: data.user};
     }

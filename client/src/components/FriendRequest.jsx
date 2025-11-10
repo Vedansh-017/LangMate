@@ -1,20 +1,64 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const FriendRequestButton = () => {
-  const [isSent, setIsSent] = useState(false);
+const FriendRequestButton = ({ userId }) => {
+  const [status, setStatus] = useState("idle"); // idle | sending | sent
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+  const token = localStorage.getItem("token");
 
-  const handleClick = () => {
-    setIsSent(true); // Change text and disable button after click
+  const sendRequest = async () => {
+    try {
+      setStatus("sending");
+
+      const res = await axios.post(
+        `${backendUrl}/api/friends/send/${userId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        toast.success(res.data.message || "Request sent!");
+        setStatus("sent");
+      } else {
+        toast.warn(res.data.message || "Unable to send request");
+        setStatus("idle");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Error sending friend request");
+      setStatus("idle");
+    }
   };
+
+  // Button UI based on status
+  if (status === "sent") {
+    return (
+      <button
+        disabled
+        className="w-full bg-green-600 text-black font-semibold py-2 rounded-full opacity-80 cursor-not-allowed"
+      >
+        ✅ Requested
+      </button>
+    );
+  }
+
+  if (status === "sending") {
+    return (
+      <button
+        disabled
+        className="w-full bg-gray-700 text-white font-semibold py-2 rounded-full animate-pulse"
+      >
+        Sending...
+      </button>
+    );
+  }
 
   return (
     <button
-      onClick={handleClick}
-      disabled={isSent}
-      className={`px-4 py-2 rounded-lg text-sm transition 
-        ${isSent ? "w-full bg-gray-600 cursor-not-allowedw-full text-black font-medium py-2 rounded-full flex items-center justify-center gap-2 transition" : "w-full bg-green-600 hover:bg-green-500 text-black font-medium py-2 rounded-full flex items-center justify-center gap-2 transition"}`}
+      onClick={sendRequest}
+      className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-2 rounded-full transition"
     >
-      {isSent ? "Request Sent" : "Friend Requests"}
+      Add Friend
     </button>
   );
 };

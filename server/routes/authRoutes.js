@@ -1,6 +1,6 @@
 import { Router } from "express";
 import passport from "passport";
-import { registerUser, loginUser, googleLoginSuccess } from "../controllers/authControllers.js";
+import { registerUser, loginUser, googleLoginSuccess} from "../controllers/authControllers.js";
 
 const authRoutes = Router();
 
@@ -18,7 +18,6 @@ authRoutes.get("/google/callback",
      failureRedirect: "http://localhost:5173/login?error=invalid_domain"       // frontend login page
   })
 );
-
 
 
 export default authRoutes;

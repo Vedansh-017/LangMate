@@ -1,6 +1,11 @@
 import express from "express";
 import { verifyUser, updateProfile , getUserProfile} from "../controllers/userContollers.js";
+import { getLanguageMatches } from "../controllers/userContollers.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 const router = express.Router();
+
+router.get("/match", authMiddleware, getLanguageMatches);
+
 
 // ✅ GET /api/user/profile — fetch current user info
 router.get("/profile", verifyUser, getUserProfile);

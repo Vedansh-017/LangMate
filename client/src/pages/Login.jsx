@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const { backendUrl, loginUser } = useContext(AppContext);
+  const { backendUrl, loginUser , getUserData } = useContext(AppContext);
   const navigate = useNavigate();
 
   // ✅ Manage form data
@@ -36,7 +36,7 @@ const handleSubmit = async (e) => {
   } else {
     const user = res.user;
     toast.success("Welcome back! 👋");
-
+   await getUserData();
     // ✅ Check if profile is complete
     if (
       !user.bio ||
@@ -44,6 +44,7 @@ const handleSubmit = async (e) => {
       !user.learningLanguage ||
       !user.location
     ) {
+      
       navigate("/update-profile"); // onboarding
     } else {
       navigate("/"); // already onboarded
@@ -112,7 +113,7 @@ const handleSubmit = async (e) => {
           <p className="text-center text-sm mt-4">
             Don't have an account?{" "}
             <span
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate("/sign")}
               className="text-green-400 cursor-pointer"
             >
               Create One

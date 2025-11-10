@@ -65,3 +65,22 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/** ✅ Get Recommended Users Based on Language Match */
+export const getLanguageMatches = async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.user._id);
+
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const users = await UserModel.find({
+      _id: { $ne: user._id, $nin: user.friends }, // exclude self and friends
+      nativeLanguage: user.learningLanguage, // their native = my learning
+      learningLanguage: user.nativeLanguage, // their learning = my native
+    }).select("fullName email profilePic nativeLanguage learningLanguage bio location");
+
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -12,11 +12,10 @@ authRoutes.post("/login", loginUser);
 authRoutes.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 // Callback route after login
-authRoutes.get("/google/callback",
-  passport.authenticate("google", {
-    successRedirect: "http://localhost:5173/profile",   // frontend success page
-     failureRedirect: "http://localhost:5173/login?error=invalid_domain"       // frontend login page
-  })
+authRoutes.get(
+  "/google/callback",
+  passport.authenticate("google", {session:false, failureRedirect: "http://localhost:5173/login" }),
+  googleLoginSuccess
 );
 
 

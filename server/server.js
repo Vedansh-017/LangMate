@@ -13,7 +13,7 @@ import friendRoutes from "./routes/friendRoutes.js";
 import http from "http";
 import { Server } from "socket.io";
 import { onlineUsers } from "./utils/socketStore.js"; // we'll create this
-
+import Message from "./models/message.js"; 
 const PORT = process.env.PORT || 4000;
 await connectDB();
 
@@ -32,15 +32,37 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
 
+  // 1️⃣ Register user (already exists)
   socket.on("register", (userId) => {
     onlineUsers.set(userId, socket.id);
+    socket.userId = userId;
     console.log("Registered user:", userId);
   });
 
+  // 2️⃣ JOIN CHAT ROOM  ← 🔥 THIS IS STEP 2
+  socket.on("join_chat", ({ myId, friendId }) => {
+    const roomId = [myId, friendId].sort().join("_");
+    socket.join(roomId);
+    console.log(`User ${myId} joined room ${roomId}`);
+  });
+
+  // 3️⃣ SEND MESSAGE
+  socket.on("send_message", async ({ senderId, receiverId, text }) => {
+    const roomId = [senderId, receiverId].sort().join("_");
+
+    const message = await Message.create({
+      roomId,
+      sender: senderId,
+      receiver: receiverId,
+      text,
+    });
+
+    io.to(roomId).emit("receive_message", message);
+  });
+
+  // 4️⃣ DISCONNECT (already exists)
   socket.on("disconnect", () => {
-    for (const [userId, id] of onlineUsers.entries()) {
-      if (id === socket.id) onlineUsers.delete(userId);
-    }
+    if (socket.userId) onlineUsers.delete(socket.userId);
     console.log("🔴 User disconnected:", socket.id);
   });
 });
@@ -85,4 +107,4 @@ app.use("/api/user", userRouter);
 app.use("/api/friends", friendRoutes);
 
 // ✅ Start server with Socket.io
-server.listen(PORT, () => console.log("🚀 Server running on port " + PORT));
+server.listen(PORT, () => console.log("Server running on port " + PORT));

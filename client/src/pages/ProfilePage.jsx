@@ -8,9 +8,14 @@ const ProfilePage = () => {
   const navigate = useNavigate();
 
   // Fetch user data if not already available
-  useEffect(() => {
-    if (!userData) getUserData();
-  }, [userData]);
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+
+  if (token) {
+    localStorage.setItem("token", token);
+  }
+}, []);
 
   if (!isLoggedIn) {
     return (

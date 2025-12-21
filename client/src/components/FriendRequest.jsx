@@ -12,7 +12,7 @@ const FriendRequestButton = ({ userId }) => {
       setStatus("sending");
 
       const res = await axios.post(
-        `${backendUrl}/api/friends/send/${userId}`,
+        `${backendUrl}/api/friends/request/${userId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -63,12 +63,25 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// ✅ Google Login Success
-export const googleLoginSuccess = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Not authorized" });
-  }
 
-  const token = generateToken(req.user._id);
-  res.redirect(`http://localhost:5173?token=${token}`);
+
+export const googleLoginSuccess = async (req, res) => {
+  try {
+    const user = req.user; // from passport
+
+    // generate JWT
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // redirect with token
+    res.redirect(
+      `http://localhost:5173/profile?token=${token}`
+    );
+  } catch (err) {
+    console.error(err);
+    res.redirect("http://localhost:5173/login");
+  }
 };

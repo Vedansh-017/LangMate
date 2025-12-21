@@ -1,7 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import UserModel from "../models/userModel.js";
-
+import UserModel from "../models/userModel.js";   
 passport.use(
   new GoogleStrategy(
     {
@@ -12,35 +11,35 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         const email = profile.emails[0].value;
-        
-        let user = await UserModel.findOne({ googleId: profile.id });
 
-        if (!user) {
-  user = await UserModel.create({
-    fullName: profile.displayName,
-    email: profile.emails[0].value,
-    googleId: profile.id,
-    profilePic: profile.photos[0].value,
-  });
-} 
+        // 1️⃣ Check if user already exists
+        let user = await UserModel.findOne({ email });
 
-        done(null, user);
-      } catch (error) {
-        done(error, null);
+        if (user) {
+          // 2️⃣ If exists, link Google if not already linked
+          if (!user.googleId) {
+            user.googleId = profile.id;
+            user.authProvider = "google";
+            user.avatar = profile.photos?.[0]?.value;
+            await user.save();
+          }
+
+          return done(null, user);
+        }
+
+        // 3️⃣ If user does NOT exist, create new user
+        user = await UserModel.create({
+          name: profile.displayName,
+          email,
+          googleId: profile.id,
+          avatar: profile.photos?.[0]?.value,
+          authProvider: "google",
+        });
+
+        return done(null, user);
+      } catch (err) {
+        return done(err, null);
       }
     }
   )
 );
-
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await UserModel.findById(id);
-    done(null, user);
-  } catch (error) {
-    done(error, null);
-  }
-});

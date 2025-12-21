@@ -1,21 +1,33 @@
 import { useEffect } from "react";
-import { io } from "socket.io-client";
+import { socket } from "../socket";
 import { toast } from "react-toastify";
-
-const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 const useSocket = (userId) => {
   useEffect(() => {
-    if (userId) {
-      socket.emit("register", userId);
+    if (!userId) return;
 
-      socket.on("friendRequestReceived", (data) => {
-        toast.info(`${data.senderName} sent you a friend request!`);
-      });
-    }
+    // connect socket
+    socket.connect();
+
+    // register user
+    socket.emit("register", userId);
+
+    // friend request notification
+    socket.on("friendRequestReceived", (data) => {
+      toast.info(`${data.senderName} sent you a friend request!`);
+    });
+
+    // optional: message notification
+    socket.on("receive_message", (msg) => {
+      if (msg.sender !== userId) {
+        toast.info("📩 New message received");
+      }
+    });
 
     return () => {
       socket.off("friendRequestReceived");
+      socket.off("receive_message");
+      socket.disconnect();
     };
   }, [userId]);
 };

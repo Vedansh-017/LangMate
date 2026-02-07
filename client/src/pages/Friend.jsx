@@ -116,7 +116,9 @@ const Friend = () => {
                   </div>
                   <button
                     className="w-full bg-gray-900 hover:bg-green-600 transition text-sm py-2 rounded-full flex items-center justify-center gap-2"
-                    onClick={() => navigate("/chat")}
+                    onClick={() => navigate(`/chat/${friend._id}`, {
+  state: { friendName: friend.name },
+})}
                   >
                     <MessageCircle size={16} /> Message
                   </button>

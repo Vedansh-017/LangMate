@@ -106,7 +106,9 @@ const Home = () => {
                 </div>
                 <button
                   className="mt-4 w-full bg-gray-900 hover:bg-green-600 transition text-sm py-2 rounded-full"
-                  onClick={() => navigate("/chat")}
+                  onClick={() => navigate(`/chat/${friend._id}`, {
+  state: { friendName: friend.fullName },
+})}
                 >
                   Message
                 </button>

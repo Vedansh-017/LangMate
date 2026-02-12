@@ -1,41 +1,63 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import { Video, Send } from "lucide-react";
 import { motion } from "framer-motion";
-import { socket } from "../socket";
 import { useParams, useLocation } from "react-router-dom";
-import VideoCall from "./VideoCall"; // ⭐ IMPORTANT
+
+import { socket } from "../socket";
+import VideoCall from "./VideoCall";
+import { AppContext } from "../context/AppContext"; // ⭐ ADDED
 
 const ChatUI = () => {
+  /* ================================
+      CONTEXT
+  ================================= */
+  const { backendUrl } = useContext(AppContext); // ⭐ GET URL FROM CONTEXT
+
+
+  /* ================================
+      ROUTER + USER INFO
+  ================================= */
   const { friendId } = useParams();
   const location = useLocation();
+
   const friendName = location.state?.friendName || "Friend";
 
-  const myId = JSON.parse(atob(localStorage.getItem("token").split(".")[1])).id;
+  const token = localStorage.getItem("token");
+  const myId = JSON.parse(atob(token.split(".")[1])).id;
+
   const roomId = [myId, friendId].sort().join("_");
 
+
+  /* ================================
+      STATE
+  ================================= */
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
-
-  // ⭐ NEW
   const [showCall, setShowCall] = useState(false);
 
   const messagesEndRef = useRef(null);
   const typingTimeout = useRef(null);
 
-  // ================= LOAD CHAT =================
+
+  /* ================================
+      LOAD OLD CHAT HISTORY
+  ================================= */
   useEffect(() => {
-    fetch(`http://localhost:4000/api/chat/${friendId}`, {
+    fetch(`${backendUrl}/api/chat/${friendId}`, { // ⭐ UPDATED
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
       .then(setMessages);
-  }, [friendId]);
+  }, [friendId, backendUrl]);
 
-  // ================= SOCKET =================
+
+  /* ================================
+      SOCKET CONNECTION
+  ================================= */
   useEffect(() => {
     if (!friendId || !myId) return;
 
@@ -45,26 +67,38 @@ const ChatUI = () => {
     socket.emit("join_chat", { myId, friendId });
     socket.emit("check_online", friendId);
 
-    socket.on("receive_message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
+    socket.on("receive_message", (msg) =>
+      setMessages((prev) => [...prev, msg])
+    );
 
     socket.on("typing", () => setTyping(true));
     socket.on("stop_typing", () => setTyping(false));
 
-    socket.on("online_status", (status) => setIsOnline(status));
-    socket.on("user_online", (id) => id === friendId && setIsOnline(true));
-    socket.on("user_offline", (id) => id === friendId && setIsOnline(false));
+    socket.on("online_status", setIsOnline);
+
+    socket.on("user_online", (id) => {
+      if (id === friendId) setIsOnline(true);
+    });
+
+    socket.on("user_offline", (id) => {
+      if (id === friendId) setIsOnline(false);
+    });
 
     return () => socket.off();
   }, [friendId]);
 
-  // ================= AUTO SCROLL =================
+
+  /* ================================
+      AUTO SCROLL
+  ================================= */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ================= SEND MESSAGE =================
+
+  /* ================================
+      SEND MESSAGE
+  ================================= */
   const handleSend = () => {
     if (!message.trim()) return;
 
@@ -77,17 +111,24 @@ const ChatUI = () => {
     setMessage("");
   };
 
-  // ================= TYPING =================
+
+  /* ================================
+      TYPING INDICATOR
+  ================================= */
   const handleTyping = () => {
     socket.emit("typing", { roomId });
 
     clearTimeout(typingTimeout.current);
+
     typingTimeout.current = setTimeout(() => {
       socket.emit("stop_typing", { roomId });
     }, 800);
   };
 
-  // ================= UI =================
+
+  /* ================================
+      UI (unchanged)
+  ================================= */
   return (
     <>
       <motion.div
@@ -98,7 +139,6 @@ const ChatUI = () => {
         <main className="flex-1 p-4 md:mt-16 flex justify-center">
           <div className="bg-white rounded-2xl h-[75vh] w-full max-w-[1200px] flex flex-col shadow-lg">
 
-            {/* HEADER */}
             <div className="border-b px-4 py-3 flex items-center justify-between">
               <div>
                 <h2 className="font-semibold">{friendName}</h2>
@@ -107,7 +147,6 @@ const ChatUI = () => {
                 </p>
               </div>
 
-              {/* ⭐ ONLY CHANGE → open VideoCall */}
               <button
                 onClick={() => setShowCall(true)}
                 className="bg-green-500 px-3 py-2 rounded-full text-white hover:bg-green-600"
@@ -116,30 +155,30 @@ const ChatUI = () => {
               </button>
             </div>
 
-            {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((msg) => (
-                <div
-                  key={msg._id}
-                  className={`flex ${
-                    msg.sender === myId ? "justify-end" : "justify-start"
-                  }`}
-                >
+              {messages.map((msg) => {
+                const isMine = msg.sender === myId;
+
+                return (
                   <div
-                    className={`max-w-xs px-4 py-2 rounded-lg shadow ${
-                      msg.sender === myId
-                        ? "bg-blue-100 text-right"
-                        : "bg-gray-100"
-                    }`}
+                    key={msg._id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                   >
-                    <p>{msg.text}</p>
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-lg shadow ${
+                        isMine
+                          ? "bg-blue-100 text-right"
+                          : "bg-gray-100"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* INPUT */}
             <div className="border-t px-4 py-2 flex items-center gap-2">
               <input
                 type="text"
@@ -152,6 +191,7 @@ const ChatUI = () => {
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 className="flex-1 border rounded-full px-4 py-2 outline-none"
               />
+
               <button onClick={handleSend}>
                 <Send size={18} />
               </button>
@@ -160,7 +200,6 @@ const ChatUI = () => {
         </main>
       </motion.div>
 
-      {/* ⭐ VIDEO CALL MOUNTED HERE */}
       {showCall && (
         <VideoCall
           friendId={friendId}
@@ -172,3 +211,4 @@ const ChatUI = () => {
 };
 
 export default ChatUI;
+    
